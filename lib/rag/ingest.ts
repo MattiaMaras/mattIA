@@ -70,7 +70,7 @@ export async function ingestDocument(
     const emb = await resolveEmbeddingProvider(clerkUserId)
     if (!emb) {
       throw new IngestError(
-        "Per indicizzare i materiali serve una chiave OpenAI o Google (gli embedding non sono disponibili con Anthropic). Aggiungila nelle Impostazioni.",
+        "Per indicizzare i materiali serve una chiave Google, OpenAI o Ollama (locale). Configurala nelle Impostazioni.",
       )
     }
 
