@@ -6,7 +6,7 @@ import { getEmbeddingModel } from "@/lib/ai/providers"
 import { EMBEDDING_DIMENSIONS, type ProviderId } from "@/lib/ai/models"
 import { toVectorLiteral } from "@/lib/rag/vector"
 
-/** Provider options needed to pin embeddings to the pgvector column size. */
+/** Provider-specific options to pin embedding output to EMBEDDING_DIMENSIONS. */
 export function embeddingProviderOptions(
   provider: ProviderId,
 ): Record<string, Record<string, number>> | undefined {
@@ -15,7 +15,6 @@ export function embeddingProviderOptions(
       return { openai: { dimensions: EMBEDDING_DIMENSIONS } }
     case "google":
       return { google: { outputDimensionality: EMBEDDING_DIMENSIONS } }
-    // Ollama (nomic-embed-text) is natively 768-dim — no override needed.
     default:
       return undefined
   }

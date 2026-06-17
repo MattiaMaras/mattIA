@@ -13,6 +13,7 @@ import { toVectorLiteral } from "@/lib/rag/vector"
 import {
   DEFAULT_MODEL,
   DEFAULT_PROVIDER,
+  EMBEDDING_DIMENSIONS,
   isProviderId,
   type ProviderId,
 } from "@/lib/ai/models"
@@ -89,6 +90,14 @@ export async function ingestDocument(
       embeddings.push(...batchEmb)
     }
 
+    // Verify embedding dimensions match the pgvector column size.
+    const actualDims = embeddings[0]?.length ?? 0
+    if (actualDims !== EMBEDDING_DIMENSIONS) {
+      throw new IngestError(
+        `Dimensione embedding non corretta: il modello ha restituito ${actualDims} dimensioni, attese ${EMBEDDING_DIMENSIONS}. Verifica le impostazioni del provider.`,
+      )
+    }
+
     // Replace any existing chunks for idempotent re-processing.
     await supabaseAdmin()
       .from("document_chunks")
@@ -110,7 +119,10 @@ export async function ingestDocument(
       const { error } = await supabaseAdmin()
         .from("document_chunks")
         .insert(rows.slice(i, i + INSERT_BATCH))
-      if (error) throw new IngestError("Salvataggio dei chunk non riuscito")
+      if (error) {
+        console.error("document_chunks insert error:", JSON.stringify(error))
+        throw new IngestError(`Salvataggio dei chunk non riuscito: ${error.message ?? error.code ?? "errore sconosciuto"}`)
+      }
     }
 
     await updateDocument(clerkUserId, documentId, {
